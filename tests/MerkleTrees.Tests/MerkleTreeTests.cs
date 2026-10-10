@@ -28,8 +28,21 @@ public class MerkleTreeTests
 
         Assert.NotNull(merkleTree);
         Assert.NotNull(merkleTree.GetMerkleRoot());
-        // Note: We could check that the height of the tree is exactly one and other properties of the tree but for
-        // brevity, I decided to stop here.
+        Assert.Equal(1, merkleTree.GetHeight());
+    }
+
+    [Fact]
+    public void GetHeight_WithSixValidTransactions_ReturnsThree()
+    {
+        var expectedHeight = 3;
+
+        var transactions = Enumerable.Range(0, 6)
+                .Select(i => $"transaction-{i}")
+                .ToArray();
+
+        var merkleTree = new MerkleTree(transactions, ValidLeafTag, ValidBranchTag);
+
+        Assert.Equal(expectedHeight, merkleTree.GetHeight());
     }
 
     [Fact]

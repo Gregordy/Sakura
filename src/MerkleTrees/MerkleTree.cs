@@ -56,6 +56,14 @@ public class MerkleTree
     }
 
     /// <summary>
+    /// Returns the height of the merkle tree.
+    /// </summary>
+    public int GetHeight()
+    {
+        return _merkleTreeLevels.Count - 1;
+    }
+
+    /// <summary>
     /// Enforces which invarient we consider for the transactions.
     /// </summary>
     private static void ThrowIfInvalidTransactions(string[] transactions)
