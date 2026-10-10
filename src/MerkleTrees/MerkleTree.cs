@@ -10,19 +10,15 @@ public sealed class MerkleTree
 {
     private readonly MerkleTreeHashConfig _merkleTreeHashConfig;
     
-    /// <summary>
     /// Represents all the levels of a merkle tree. 
     /// Elements at the first index are the leaf nodes, subsequent ones until the penultimate are the branch nodes, and
     /// the root is a the last index of the list.
-    /// </summary>
     private readonly List<List<byte[]>> _merkleTreeLevels = [];
 
     private const int Sha256HashSize = 32;
     private const int TaggedHashPrefixSize = 2 * Sha256HashSize;
     
-    /// <summary>
-    /// The maximum number of transactions we accept in the tree to constraint its memory usage.
-    /// </summary>
+    /// The maximum number of transactions we accept in the tree to constrain its memory usage.
     private const int MaxTransactionCount = 50_000;
 
     public MerkleTree(string[] transactions, string leafTag, string branchTag)
@@ -38,9 +34,9 @@ public sealed class MerkleTree
     /// <summary>
     /// Returns the root of the merkle tree as a 64 lowercase hexadecimal characters.
     /// 
-    /// We use the lower case representation for consistency of results and because it is idiomatic.
+    /// We use the lower case representation for consistency of results and because it is idiomatic with common Bitcoin
+    /// hash representation.
     /// </summary>
-    /// <returns></returns>
     public string GetMerkleRoot()
     {
         var merkleRoot = _merkleTreeLevels[^1][0];

@@ -13,7 +13,7 @@ public sealed class MerkleTreeHashConfig
     {
         ArgumentException.ThrowIfNullOrEmpty(leafTag, "A leaf tag must be provided");
         ArgumentException.ThrowIfNullOrEmpty(branchTag, "A branch tag must be provided");
-        
+
         LeafHash = ComputeHash(leafTag);
         BranchHash = ComputeHash(branchTag);
     }
