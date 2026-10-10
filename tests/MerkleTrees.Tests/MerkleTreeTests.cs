@@ -32,9 +32,9 @@ public class MerkleTreeTests
     }
 
     [Fact]
-    public void GetHeight_WithSixValidTransactions_ReturnsThree()
+    public void GetHeight_WithSixValidTransactions_ReturnsTheCorrectValue()
     {
-        var expectedHeight = 3;
+        const int expectedHeight = 3;
 
         var transactions = Enumerable.Range(0, 6)
                 .Select(i => $"transaction-{i}")
@@ -104,7 +104,6 @@ public class MerkleTreeTests
         Assert.Throws<ArgumentException>(() =>
         {
             var onlyNullTransactions = new string[10];
-
             var merkleTree = new MerkleTree(onlyNullTransactions, ValidLeafTag, ValidBranchTag);
         });
     }
