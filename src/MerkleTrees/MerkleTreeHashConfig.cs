@@ -22,5 +22,4 @@ public sealed class MerkleTreeHashConfig
     {
         return SHA256.HashData(Encoding.UTF8.GetBytes(tag));
     }
-    
 }
