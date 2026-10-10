@@ -2,9 +2,6 @@ namespace Sakura.MerkleTrees.Tests;
 
 public class MerkleTreeTests
 {
-    private const string EmptyLeafTag = "";
-    private const string EmptyBranchTag = "";
-
     private const string ValidLeafTag = "Leaf_Tag";
     private const string ValidBranchTag = "Branch_Tag";
 
@@ -117,7 +114,7 @@ public class MerkleTreeTests
     {
         Assert.Throws<ArgumentException>(() =>
         {
-            var merkleTree = new MerkleTree(ValidSingleTransaction, EmptyLeafTag, EmptyBranchTag);
+            var merkleTree = new MerkleTree(ValidSingleTransaction, leafTag: string.Empty, string.Empty);
         });
     }
 
@@ -126,7 +123,7 @@ public class MerkleTreeTests
     {
         Assert.Throws<ArgumentException>(() =>
         {
-            var merkleTree = new MerkleTree(ValidSingleTransaction, EmptyLeafTag, ValidBranchTag);
+            var merkleTree = new MerkleTree(ValidSingleTransaction, leafTag: string.Empty, ValidBranchTag);
         });
     }
 
@@ -135,7 +132,7 @@ public class MerkleTreeTests
     {
         Assert.Throws<ArgumentException>(() =>
         {
-            var merkleTree = new MerkleTree(ValidSingleTransaction, ValidLeafTag, EmptyBranchTag);
+            var merkleTree = new MerkleTree(ValidSingleTransaction, ValidLeafTag, branchTag: string.Empty);
         });
     }
 
