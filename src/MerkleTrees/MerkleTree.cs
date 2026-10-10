@@ -6,14 +6,14 @@ namespace Sakura.MerkleTrees;
 /// <summary>
 /// The MerkleTree class represents a merkle tree.
 /// </summary>
-public sealed class MerkleTree
-{
-    private readonly MerkleTreeHashConfig _merkleTreeHashConfig;
-    
+public class MerkleTree
+{    
     /// Represents all the levels of a merkle tree. 
     /// Elements at the first index are the leaf nodes, subsequent ones until the penultimate are the branch nodes, and
     /// the root is a the last index of the list.
-    private readonly List<List<byte[]>> _merkleTreeLevels = [];
+    protected readonly List<List<byte[]>> _merkleTreeLevels = [];
+
+    private readonly MerkleTreeHashConfig _merkleTreeHashConfig;
 
     private const int Sha256HashSize = 32;
     private const int TaggedHashPrefixSize = 2 * Sha256HashSize;
@@ -26,9 +26,20 @@ public sealed class MerkleTree
         ThrowIfInvalidTransactions(transactions);
 
         _merkleTreeHashConfig = new MerkleTreeHashConfig(leafTag, branchTag);
+        
+        BuildMerkleTree(transactions);
+    }
 
+    private void BuildMerkleTree(string[] transactions)
+    {
         _merkleTreeLevels.Add(ComputeLeafNodes(transactions));
         _merkleTreeLevels.Add(ComputeBranchNodes(_merkleTreeLevels[0]));
+
+        while (_merkleTreeLevels[^1].Count > 1)
+        {
+            var currentLevel = _merkleTreeLevels[^1];
+            _merkleTreeLevels.Add(ComputeBranchNodes(currentLevel));
+        }
     }
 
     /// <summary>
@@ -90,29 +101,25 @@ public sealed class MerkleTree
     /// </summary>
     private List<byte[]> ComputeBranchNodes(List<byte[]> leafNodes)
     {
-        while (leafNodes.Count > 1)
+        var nextLevel = new List<byte[]>((leafNodes.Count + 1) / 2);
+
+        for (int i = 0; i < leafNodes.Count; i += 2)
         {
-            var nextLevel = new List<byte[]>((leafNodes.Count + 1) / 2);
+            byte[] left = leafNodes[i];
 
-            for (int i = 0; i < leafNodes.Count; i += 2)
-            {
-                byte[] left = leafNodes[i];
-                // If no right sibling exists, we duplicate the left node to complete the pair.
-                byte[] right = i + 1 < leafNodes.Count ? leafNodes[i + 1] : left;
+            // Duplicate the last node if it has no right sibling.
+            byte[] right = i + 1 < leafNodes.Count ? leafNodes[i + 1] : left;
+            byte[] branchNode = new byte[left.Length + right.Length];
 
-                byte[] branchNode = new byte[left.Length + right.Length];
+            left.CopyTo(branchNode, 0);
+            right.CopyTo(branchNode, left.Length);
 
-                left.CopyTo(branchNode, 0);
-                right.CopyTo(branchNode, left.Length);
+            var taggedBranch = CreateTaggedHash(branchNode, _merkleTreeHashConfig.BranchHash);
 
-                var taggedBranch = CreateTaggedHash(branchNode, _merkleTreeHashConfig.BranchHash);
-                nextLevel.Add(taggedBranch);
-            }
-
-            leafNodes = nextLevel;
+            nextLevel.Add(taggedBranch);
         }
 
-        return leafNodes;
+        return nextLevel;
     }
 
     /// <summary>
