@@ -33,7 +33,7 @@ public sealed class UserAccountMerkleTree : MerkleTree
     /// <summary>
     /// Retrieves the user balance for the given user id, or an exception if the user does not exist.
     /// </summary>
-    public int GetUserBalance(int userId)
+    private int GetUserBalance(int userId)
     {
         if (_userIdToBalance.TryGetValue(userId, out var userAccount))
         {

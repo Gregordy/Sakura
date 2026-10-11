@@ -6,9 +6,6 @@ public class UserAccountMerkleTreeTests
     private static readonly string TransactionWithMissingComma = "(10500)";
     private static readonly string TransactionWithNegativeBalance = "(10,-500)";
     private static readonly string TransactionWithNegativeUserId = "(-10,500)";
-    private static readonly int ValidTransactionUserId = 10;
-    private static readonly int ValidTransactionBalance = 500;
-
     private const string LeafTag = "ProofOfReserve_Leaf";
     private const string BranchTag = "ProofOfReserve_Branch";
 
@@ -60,20 +57,7 @@ public class UserAccountMerkleTreeTests
             var merkleTree = new UserAccountMerkleTree(Array.Empty<string>(), LeafTag, BranchTag);
         });
     }
-
-    [Fact]
-    public void GetUserBalance_WithThreeValidTransactions_ShouldReturnTheCorrectBalance()
-    {
-        string[] transactions = [ValidTransaction, "(20,800)", "(30,200)"];
-
-        var merkleTree = new UserAccountMerkleTree(transactions, LeafTag, BranchTag);
-        var userBalance = merkleTree.GetUserBalance(ValidTransactionUserId);
-
-        Assert.Equal(ValidTransactionBalance, userBalance);
-        Assert.Equal(800, merkleTree.GetUserBalance(20));
-        Assert.Equal(200, merkleTree.GetUserBalance(30));
-    }
-
+    
     [Fact]
     public void GetMerkleProof_ForANonExistingUser_RaisesAKeyNotFoundException()
     {
