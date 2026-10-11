@@ -3,14 +3,11 @@ using System.Security.Cryptography;
 
 namespace Sakura.MerkleTrees;
 
-/// <summary>
-/// The MerkleTree class represents a merkle tree.
-/// </summary>
 public class MerkleTree
 {    
     /// Represents all the levels of a merkle tree. 
     /// Elements at the first index are the leaf nodes, subsequent ones until the penultimate are the branch nodes, and
-    /// the root is a the last index of the list.
+    /// the root is at the last index of the list.
     protected readonly List<List<byte[]>> _merkleTreeLevels = [];
 
     private readonly MerkleTreeHashConfig _merkleTreeHashConfig;
@@ -30,23 +27,9 @@ public class MerkleTree
         BuildMerkleTree(transactions);
     }
 
-    private void BuildMerkleTree(string[] transactions)
-    {
-        _merkleTreeLevels.Add(ComputeLeafNodes(transactions));
-        _merkleTreeLevels.Add(ComputeBranchNodes(_merkleTreeLevels[0]));
-
-        while (_merkleTreeLevels[^1].Count > 1)
-        {
-            var currentLevel = _merkleTreeLevels[^1];
-            _merkleTreeLevels.Add(ComputeBranchNodes(currentLevel));
-        }
-    }
-
     /// <summary>
     /// Returns the root of the merkle tree as a 64 lowercase hexadecimal characters.
-    /// 
-    /// We use the lower case representation for consistency of results and because it is idiomatic with common Bitcoin
-    /// hash representation.
+    /// We use the lower case representation because it is idiomatic with common Bitcoin hash representations.
     /// </summary>
     public string GetMerkleRoot()
     {
@@ -63,8 +46,20 @@ public class MerkleTree
         return _merkleTreeLevels.Count - 1;
     }
 
+    private void BuildMerkleTree(string[] transactions)
+    {
+        _merkleTreeLevels.Add(ComputeLeafNodes(transactions));
+        _merkleTreeLevels.Add(ComputeBranchNodes(_merkleTreeLevels[0]));
+
+        while (_merkleTreeLevels[^1].Count > 1)
+        {
+            var currentLevel = _merkleTreeLevels[^1];
+            _merkleTreeLevels.Add(ComputeBranchNodes(currentLevel));
+        }
+    }
+
     /// <summary>
-    /// Enforces which invarient we consider for the transactions.
+    /// Enforces which invariants we consider for the transactions.
     /// </summary>
     private static void ThrowIfInvalidTransactions(string[] transactions)
     {
@@ -87,7 +82,7 @@ public class MerkleTree
     }
 
     /// <summary>
-    /// Creates and returns the bottom of the merkle tree (leaf nodes) from the provided transactions.
+    /// Computes and returns the bottom of the merkle tree (leaf nodes) from the provided transactions.
     /// </summary>
     private List<byte[]> ComputeLeafNodes(string[] transactions)
     {
@@ -105,7 +100,7 @@ public class MerkleTree
     }
 
     /// <summary>
-    /// Computes the rest of the merkle tree (all branches until the root) from the provided leafNodes.
+    /// Computes and returns the rest of the merkle tree (all branches until the root) from the provided leafNodes.
     /// </summary>
     private List<byte[]> ComputeBranchNodes(List<byte[]> leafNodes)
     {
