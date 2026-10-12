@@ -3,10 +3,11 @@ using System.Text.RegularExpressions;
 namespace Sakura.MerkleTrees;
 
 /// <summary>
-/// Is a specialized version of the base merkle tree that additionally stores original transactions for later retrieval.
+/// Is a specialized version of the base MerkleTree class that additionally stores original transactions for later
+/// retrieval.
 /// </summary>
 public sealed class UserAccountMerkleTree : MerkleTree
-{    
+{
     internal record UserAccount(int UserId, int Balance, int LeafIndex);
 
     private static readonly Regex TransactionRegex = new(@"\A\([1-9][0-9]*\,[0-9]+\)\z");

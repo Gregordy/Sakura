@@ -1,16 +1,19 @@
-**（日本語は後述します）**
+**（日本語版は[こちら](README-jp.md)）**
 
 # Sakura Project structure
 
-This .NET solution is composed of two projects:
-- `MerkleTrees.csproj` and
-- `ProofOfReserve.Api.csproj`.
+Sakura is a .NET solution composed of two projects:
+- `MerkleTrees.csproj`: a library providing a base Merkle tree implementation and a specialized implementation.
+- `ProofOfReserve.Api.csproj`: a Web API for retrieving user balances and their corresponding Merkle proofs.
 
-`MerkleTrees.csproj` is a library whose goal is to compute a merkle tree from a list of strings.
+> Note: Additionally, they each have a corresponding test project.
 
-It contains two main classes:
-- MerkleTree.cs
-- UserAccountMerkleTree.cs.
+## MerkleTrees
+The MerkleTrees library provides two implementations of a Merkle tree.
+
+It composed of two main classes:
+- `MerkleTree.cs`, the base implementation
+- `UserAccountMerkleTree.cs`, a specialized version for user accounts (see the class documentation).
 
 **Meaningful test data** for this project are located in the method named  
 `Constructor_WithSpecificData_ShouldReturnAGivenMerkleRoot()` of `MerkleTreeTests.cs`.
@@ -19,72 +22,77 @@ To execute all tests of the MerkleTrees project, run this command from the root 
 
     dotnet test tests/MerkleTrees.Tests/MerkleTrees.Tests.csproj
 
-`ProofOfReserve.Api.csproj` is a Web API with two features:
-- populating a list of users and their balances
-- retrieving the user balance and the merkle proof.
+### Dependencies
 
+This project **uses no third-party library** and uses xUnit as its test framework.
 
-### Third-party libraries used
+## Proof of Reserve API
 
-The MerkleTrees project **uses no third-party library**.
+This Web API exposes two features:
+1) Populating a list of users and their balances
+2) Retrieving a user balance and its corresponding Merkle proof.
 
-For the Proof of Reserve Web API project, I used
-[Minimal APIs](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api) instead of Controller-based APIs.  
+This project uses a specialized implementation of `MerkleTree.cs`.  
+Its purpose is to return the Merkle proof that contains a user's balance and additional data.  
+
+The major added method for the new version of the library is `GetMerkleProof()`.
+
+### Dependencies
+
+For this Web API project, I used [Minimal APIs](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api)
+instead of Controller-based APIs.  
 It is a way to have the least amount of dependencies in an API-based project.
 
-ASP.NET Core framework (.NET 10) is the only dependency this project has (because of the inclusion of
-`Microsoft.NET.Sdk.Web`).  
-Besides this, **no third-party libraries** are used.
+This means ASP.NET Core shared framework is the only runtime dependency this project has.
 
-### Additional configuration
+Besides this, and the use of xUnit for its test framework, **no third-party library** is used.
 
-The file  `xunit.runner.json` included in both `MerkleTrees.Tests.csproj.cs` and `ProofOfReserve.Api.Tests.csproj` is to
-prevent strings from being truncated in the xUnit test output. It is mainly to ease debugging while developing.
+## Additional configuration
 
-The rules from the `.editorconfig` have been chosen to follow idiomatic .NET conventions.
+The configuration file `xunit.runner.json` included in both `MerkleTrees.Tests.csproj` and
+`ProofOfReserve.Api.Tests.csproj` prevents strings from being truncated in the xUnit test output. It is mainly used to
+ease debugging while developing.
+
+The rules in `.editorconfig` have been chosen to follow idiomatic .NET conventions.
 
 ## 1. Calculation of Merkle Root
 
-The Git tag created for the completion of the library is [v1.0](https://github.com/Gregordy/Sakura/releases/tag/v1.0). 
+The MerkleTrees library performs CPU-bound operations and does not perform I/O.
+
+The Git tag created for the completion of the first version of this library (the one containing only the base
+implementation of a merkle tree) is
+[v1.0](https://github.com/Gregordy/Sakura/releases/tag/v1.0). 
 
 `MerkleTreeTests.cs` contains tests for it.
 
 ### Scalability considerations
 
-The MerkleTrees library is **CPU-bound**.
+Here is a breakdown of the time complexity of different operations.
 
-There is no operation around files nor are API requests performed.  
-In short, the library does not wait for any I/O.
+1) Building the tree requires `O(n)` time as we hash a linear number of nodes.
+2) Generating a Merkle proof is a `O(log n)` operation as we need to traverse the tree's height.  
+3) Finally, generating proofs for all leaves is a `O(n log n)` because each proof traverses the tree independently.
 
-Computing the merkle tree and merkle proofs relies entirely on CPU-bound operations.
-
-Building the tree requires `(O(n))` time as we hash a linear number of nodes.  
-Generating one proof is a `(O(log n))` operation as we need to traverse the tree's height.  
-
-Verifying one proof is also a `(O(log n))` operation because we recompute hashes along the path (still traversing the
-tree's height).  
-Finally, generating proofs for all leaves is a `(O(n log n))` because each proof traverses the tree independently.
+Once the tree is built, getting the Merkle root is a constant time operation.
 
 ## 2. Proof of Reserve Web API
 
 The Proof of Reserve Web API is located in the folder `ProofOfReserve.Api`.
 
-The new Git tag for the updated MerkleTree implementation (called **UserAccountMerkleTree.cs**) is 
+The new Git tag for the updated MerkleTree implementation (**UserAccountMerkleTree.cs**) is 
 [v1.1](https://github.com/Gregordy/Sakura/releases/tag/v1.1).  
-This implementation extends the base `MerkleTree.cs` and adds features such as:
-- `GetMerkleProof()` to return the merkle proof containing the user balance
 
-### Running the API
+### Starting the API
 
-To run the Proof of Reserve API
+To start the Proof of Reserve API, run this command:
 
     dotnet run --project src/ProofOfReserve.Api/ProofOfReserve.Api.csproj
 
-It will launch on `http://localhost:5066`
+It will launch on `http://localhost:5066`.
 
 ### Testing the API
 
-> Reminder: There are only two features. One using GET, and the other using POST. Both use the /users endpoint.
+> Reminder: There are only two features. One using GET, and the other using POST. Both use the "/users" endpoint.
 
 Once the API is started, the in-memory database registered as a singleton in `ProofOfReserve.Api/Program.cs`
 will be up.
@@ -117,13 +125,13 @@ It will return the following response:
 }
 ```
 
-To retrieve the merkle proof and its additional data for a given user, use this next query:
+To retrieve the Merkle proof and its additional data for a given user, use this next request:
 
 ```http
-GET "http://localhost:5066/users/1"
+GET http://localhost:5066/users/1
 ```
 
-> Note: Here, 1 is the user id for which we want the merkle proof.
+> Note: Here, 1 is the user id for which we want the Merkle proof.
 
 The response for this query is as follows.
 
@@ -149,82 +157,102 @@ The response for this query is as follows.
 }
 ```
 
+All of these data can already be observed in the test data of the updated library and those of the API.
+
+Refer to `GetMerkleProof_ForAnExistingUser_ReturnsTheCorrectData()` in `UserAccountMerkleTreeTests.cs`.  
+Or to `Get_ProofOfFundsForAnExistingUser_ReturnsOk()` in `ProofOfReserveEndpointTests.cs`.
+ 
 ## 3. Suggestions for Improvement
 
-If this web service was to be offered as an actual service, many improvements should be considered.
+If the Proof of Reserve Web API was offered as an actual service, many improvements should be considered.
 
 ### Security
 
 a) **Authentication**
 
-To prevent unauthorized access to the API, requiring either an API token or a user account to access it will be needed.
+To prevent unauthorized access to the API, requiring either an API token or a user account to access it is preferred.
+
+Also, authorization rules to determine which data a given user can access should be enforced.
 
 b) **Input data validation**
 
-Right now, input data are not thoroughly checked.
+Currently, input data validation is limited.
 
-For a real production service, this is dangerous as it could allow attackers to either flood our service with invalid
-data or even open security breaches.  
-Implementing strong sanitization of input data is paramount to prevent such issues.
+For a real production service, appropriate validation and request-size limits would help prevent invalid input,
+excessive resource consumption, and potential security vulnerabilities.
 
-Also, limiting the number of users that can be created on a per request basis.
+For this API, limiting the number of users a single request can create will help prevent excessively large operations.
 
 c) **Rate-limiting**
 
-As the web service will be exposed, it will be vulnerable to abuse.
+As the web service will be exposed, it will be vulnerable to abuse or excessive traffic.
 
-Protecting how many times it can be used in a given time range will be necessary to prevent such abuse.
-
-### API design
-
-Currently, the POST endpoint performs two actions:
-- create users from the provided data
-- return the merkle root for all the newly created users (in addition to possible existing ones).
-
-It would be better to **split these functionalities between different** endpoints such as:
-
-- `POST /users`, that only handles the user creation and returns an HTTP 201 on success and 400 on failure
-- `GET /users/{userId}/balance`, that returns the merkle proof for the given user
-- `GET /users/summary`, which will return the merkle root for all the currently saved users.
-
-Additionally, integrating OpenApi will make it easier to use, maintain, and document the API.
+Restricting the number of requests a client can make within a given time range will be necessary to prevent such abuse.
 
 ### Data integrity
 
-a) **Long-term storage**
+a) **Long-term persistence**
 
 Right now, the database is in-memory.
 
-This means that each time the service restarts or crashes, data will be lost.  
-To prevent this, we can replace the in-memory database with a persistent storage.
+This means data will be lost each time the service restarts or crashes.  
+To prevent this, we can replace the in-memory database with persistent storage.
 
-b) **Concurrency**
+b) **Concurrency and consistency**
 
-To prevent lost updates the API will need to make sure that updates happen atomically and in isolation.
+Concurrent requests must not produce Merkle roots and proofs that represent different versions of the user data.
+
+To prevent this, tree updates should be applied atomically. Also, the generation of proofs should be done on a
+consistent tree snapshot.
+
+For the current in-memory implementation, this may require synchronization.  
+If persistent storage is introduced, this will mean considering the appropriate transaction and isolation strategy 
+depending on the consistency requirements.
 
 ### Scalability
 
-a) **Incremental tree update**
+a) **Caching**
 
-Right now, the merkle tree is rebuilt entirely each time it is requested.
+Preventing redundant computations of proofs on an unchanged tree could benefit from caching.  
+The same applies to rebuilding the tree when no new user was added between requests.
 
-b) **Caching**
+However, caching should be introduced only when performance measurements indicate that it will provide meaningful
+benefit.
 
-To prevent recomputing often accessed data such as the merkle tree
+Cache invalidation must be handled carefully to ensure that cached proofs and Merkle roots remain consistent with the
+underlying user data.
 
-Invalidation will be important. When new users are added, the whole merkle tree will need to be recomputed so it is
-crucial the clear the previously built tree stored in cache to prevent inconsistencies.
+b) **Incremental tree update**
 
-Same thing for the proof of a given user.  
-If one of these users becomes a "hot key" (requested many times in a short interval), then serving a cached entry may be
-faster than recomputing it each time. 
+Currently, the Merkle tree is rebuilt entirely each time it is requested.
+
+If the tree grows above a certain size, it could be useful to consider implementing incremental tree updates.
 
 ### Maintainability
 
 a) **Stronger error handling**
 
-Currently, it the error handling is lightweight.
+Currently, the error handling is minimal.
 
-For easier debugging and better visibility into the system, states such as user already created, malformed transactions,
-or other input related errors must be handled more precisely to given to the end user more meaningful information about
-what went wrong while processing a request.
+For easier debugging and better visibility into the system, states such as duplicate user IDs, missing users, invalid
+request data, or other expected failure conditions must be handled precisely to provide end users with meaningful
+information.
+
+b) **Persistence abstraction**
+
+Adding an abstraction layer to better separate persistence operations from business logic could improve maintainability
+and evolvability if the application needs to support different storage providers in the future.
+
+### API design
+
+Currently, the POST endpoint performs two actions:
+- creating users from the provided data
+- returning the Merkle root for all the newly created users (in addition to possible existing ones).
+
+It would be better to **split these functionalities between different** endpoints such as:
+
+- `POST /users`, that only handles the user creation and returns an HTTP 201 on success and 400 on failure
+- `GET /users/{userId}/balance`, that returns the Merkle proof for the given user
+- `GET /users/summary`, which will return the Merkle root for all the currently saved users.
+
+Additionally, integrating OpenAPI will make it easier to use, maintain, and document the API.
